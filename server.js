@@ -12,14 +12,16 @@ var static = require('node-static');
 //
 var file = new(static.Server)('./public');
 
-require('http').createServer(function (request, response) {
+var http = require('http');
+
+httpServer = http.createServer(function (request, response) {
     request.addListener('end', function () {
         //
         // Serve files!
         //
         file.serve(request, response);
     });
-}).listen(8000);
+}).listen(80);
 
 var Player = function(newName) {
 	var id;
@@ -37,7 +39,8 @@ var Player = function(newName) {
 
 function startGameService() {
 	players = [];
-	socket = io.listen(8000);
+	socket = io.listen(httpServer);
+	httpServer.listen(8000);
 
 	socket.configure(function() {
 		socket.set("transports", ["websocket"]);

@@ -10,7 +10,7 @@ function init() {
 	ctx = canvas.getContext("2d");
 
 	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
+	canvas.height = window.innerHeight*0.5;
 
 	socket = io.connect("http://webdev-project3.jit.su", {transports: ["websocket"]});
 

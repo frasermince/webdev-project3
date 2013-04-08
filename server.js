@@ -1,12 +1,21 @@
-var express = require('express');
+var util = require("util");
+var io = require("socket.io");
 
-var app = express.createServer(express.logger());
+var socket;
+var players;
 
-app.get('/', function(request, response) {
-  response.send('Hello World Test Change x2!');
-});
+function startGameService() {
+	players = [];
+	socket = io.listen(8000);
 
-var port = process.env.PORT || 5000;
-app.listen(port, function() {
-  console.log("Listening on " + port);
-});
+	socket.configure(function() {
+		socket.set("transports", ["websocket"]);
+		socket.set("log level", 2);
+	})
+
+	socket.sockets.on("connection", onSocketConnection);
+}
+
+function onSocketConnection(client) {
+	util.log("New player has connected: "+client.id);
+}

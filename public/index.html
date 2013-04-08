@@ -54,11 +54,13 @@
 		<canvas id="gameCanvas"></canvas>
 		<footer><img src="https://webhooks.nodejitsu.com/bfm09a/webdev-project3.png"></footer>
 	</body>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="js/game.js"></script>
 	<script>
 	$("#startButton").click(function() {
 		console.log($("#loginName").val());
 		$('#login').addClass('animated bounceOutUp');
+		init();
 	});
 	</script>
-
 </html>

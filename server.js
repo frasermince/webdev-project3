@@ -10,9 +10,10 @@ var Player = function(newName) {
 
 	var getName = function() {
 		return name;
-	}
+	};
 
 	return {
+		test: "test",
 		name: name
 	}
 }

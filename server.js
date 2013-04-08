@@ -17,7 +17,7 @@ function startGameService() {
 }
 
 function onSocketConnection(client) {
-	util.log("New Client Info: "+ client);
+	util.log("New Client Info: "+ client.id);
 }
 
 

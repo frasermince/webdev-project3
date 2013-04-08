@@ -14,8 +14,7 @@ var Player = function(newName) {
 	};
 
 	return {
-		test: "test",
-		name: getName
+		getName: getName
 	}
 }
 
@@ -28,12 +27,14 @@ function init() {
 
 	socket = io.connect("http://webdev-project3.jit.su", {transports: ["websocket"]});
 
+	remotePlayers = [];
+
 	socket.on("connect", onSocketConnected);
 	socket.on("disconnect", onSocketDisconnected);
 	socket.on("new player", onNewPlayer);
 
 	var playerName = $("#loginName").val();
-	var localPlayer =  new Player(playerName);
+	localPlayer =  new Player(playerName);
 }
 
 function onSocketConnected() {
@@ -48,7 +49,8 @@ function onSocketDisconnected() {
 }
 
 function onNewPlayer(data) {
-	console.log("New player connected: "+data.id);
+	console.log("New player connected: ", data.name);
+	console.log("# Remote Players:", remotePlayers.length);
 
 	// Initialise the new player
 	var newPlayer = new Player(data.name);

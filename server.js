@@ -32,8 +32,7 @@ var Player = function(newName) {
 	};
 
 	return {
-		test: "test",
-		name: getName
+		getName: getName
 	}
 }
 
@@ -85,6 +84,7 @@ function onNewPlayer(data) {
 	}
 		
 	// Add new player to the players array
+
 	players.push(newPlayer);
 }
 

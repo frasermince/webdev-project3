@@ -12,7 +12,7 @@ function init() {
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	socket = io.connect("http://webdev-project3.jit.su", {port: 8000, transports: ["websocket"]});
+	socket = io.connect("http://webdev-project3.jit.su", {transports: ["websocket"]});
 
 	socket.on("connect", onSocketConnected);
 }

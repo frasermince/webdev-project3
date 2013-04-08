@@ -42,12 +42,12 @@ function onClientDisconnect() {
 
 	var removingPlayerWithIndex = playerById(this.id);
 
-	if (!removePlayer) {
+	if (!removingPlayerWithIndex) {
 		util.log("Player not found: "+this.id);
 		return;
 	}
 
-	players.splice(players.indexOf(removePlayer), 1);
+	players.splice(players.indexOf(removingPlayerWithIndex), 1);
 	this.broadcast.emit("remove player", {id: this.id});	
 }
 

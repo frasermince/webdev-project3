@@ -18,7 +18,17 @@ function startGameService() {
 
 function onSocketConnection(client) {
 	util.log("New Client Info: "+ client.id);
+
+	client.on("disconnect", onClientDisconnect);
+	client.on("new player", onNewPlayer);
 }
 
+function onClientConnection() {
+
+}
+
+function onNewPlayer() {
+	
+}
 
 startGameService();

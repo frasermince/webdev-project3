@@ -55,13 +55,13 @@ function onNewPlayer(data) {
 	var newPlayer = new Player(data.name);
 	newPlayer.id = data.id;
 
-	this.broadcast.emit("new player", {name: newPlayer.name()});
+	this.broadcast.emit("new player", {name: newPlayer.getName()});
 
 	// Send existing players to the new player
 	var i, existingPlayer;
 	for (i = 0; i < players.length; i++) {
 		existingPlayer = players[i];
-		this.emit("new player", {name: existingPlayer.name()});
+		this.emit("new player", {name: existingPlayer.getName()});
 	}
 		
 	// Add new player to the players array

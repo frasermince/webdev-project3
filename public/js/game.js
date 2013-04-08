@@ -15,7 +15,7 @@ var Player = function(newName) {
 
 	return {
 		test: "test",
-		name: name
+		name: getName
 	}
 }
 

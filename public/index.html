@@ -31,9 +31,14 @@
 			width: 75%;
 			font-size: 100%;
 			line-height:27px;
-			text-indent:10px; 
+			text-indent:5px; 
 			border:solid 1px #d9d9d9; 
-			border-radius: 2px;
+			border-radius: 7px;
+		}
+
+		#loginName:focus {
+			outline-style: none;
+			box-shadow: 0px 0px 3pt 2pt orange;
 		}
 
 		#startButton {
@@ -71,6 +76,11 @@
 			margin: 0 auto;
 			text-align: center;
 		}
+
+		footer a {
+			padding-top:10px;
+			display:block;
+		}
 		</style>
 		<script src="js/jquery.1.9.1.js"></script>
 	</head>
@@ -78,11 +88,14 @@
 	<body>
 		<div id="login">
 			<h1>Welcome!</h1>
-			<input type="text" id="loginName" class="floatLeft" placeholder="Please enter your name.">
+			<input type="text" id="loginName" class="floatLeft" placeholder="Please enter your name." required="true">
 			<button id="startButton" class="floatRight">Start</button>
 		</div>
 		<canvas id="gameCanvas"></canvas>
-		<footer><img src="https://webhooks.nodejitsu.com/bfm09a/webdev-project3.png"></footer>
+		<footer>
+			Developed in Abilene, Texas.
+			<a href="https://webops.nodejitsu.com/#bfm09a/webdev-project3"><img id="buildStatus" src="https://webhooks.nodejitsu.com/bfm09a/webdev-project3.png"></a>
+		</footer>
 	</body>
 	<script src="http://webdev-project3.jit.su/socket.io/socket.io.js"></script>
 	<script src="js/game.js"></script>
@@ -97,6 +110,14 @@
 		console.log($("#loginName").val());
 		$('#login').addClass('animated bounceOutUp');
 		init();
+	});
+
+	$("#loginName").focus();
+
+	$("#buildStatus").mouseenter(function() {
+		$(this).addClass('animated pulse');
+	}).mouseleave(function() {
+		$(this).removeClass('animated pulse');
 	});
 	</script>
 </html>

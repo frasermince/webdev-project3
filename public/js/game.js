@@ -5,6 +5,7 @@ var localPlayer;
 var remotePlayers;
 var socket;
 var img;
+var gameEnded = false;
 
 var Player = function(startX, startY, newName) {
 	var x = startX;
@@ -88,8 +89,15 @@ function init() {
 
 	keys = new Keys();
 
+	var startX = Math.round(Math.random()*(canvas.height-5));
+	var startY = Math.round(Math.random()*(canvas.width-5));
+
 	var playerName = $("#loginName").val();
-	localPlayer =  new Player(50, 50, playerName);
+	if(playerName == "pikachu") {
+		localPlayer =  new Player(500, 50, playerName);
+	} else {
+		localPlayer =  new Player(50, 50, playerName);
+	}
 
 	socket = io.connect("http://localhost", {port: 8080, transports: ["websocket"]});
 
@@ -174,11 +182,17 @@ function onRemovePlayer(data) {
 }
 
 function animate() {
-	update();
-	draw();
+	console.log("animate");
+	if(gameEnded == false) {
+		update();
+		draw();
 
-	// Request a new animation frame using Paul Irish's shim
-	window.requestAnimFrame(animate);
+		// Request a new animation frame using Paul Irish's shim
+		window.requestAnimFrame(animate);
+	} else {
+		ctx.font="50px Helvetica";
+		ctx.fillText("Game Over!",10,50);
+	}
 };
 
 
@@ -201,16 +215,31 @@ function update() {
 };
 
 function draw() {
-	console.log("we are drawing");
+	console.log("we are drawing", gameEnded);
 	// Wipe the canvas clean
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	// Draw the local player
 	localPlayer.draw(ctx);
+	var pikachuImage = document.getElementById("pikachu");
+	var pokeballImage = document.getElementById("pokeball");
 
 	// Draw the remote players
 	var i;
 	for (i = 0; i < remotePlayers.length; i++) {
 		remotePlayers[i].draw(ctx);
+
+		if(localPlayer.getX() == remotePlayers[i].getX() &&
+			localPlayer.getY() == remotePlayers[i].getY()) {
+			console.log("End game");
+			
+			gameEnded = true;
+		}
+		// if(localPlayer.getName() == "pikachu" && remotePlayers[i].getName() != "pikachu") {
+		// 	console.log(isPixelCollision(pikachuImage, localPlayer.getX(), localPlayer.getY(), pokeballImage, remotePlayers[i].getX(), remotePlayers[i].getY(), true));
+		// }
 	};
+
+	
+	
 };

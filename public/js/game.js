@@ -66,7 +66,7 @@ function init() {
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight*0.5;
 
-	socket = io.connect("http://webdev-project3.jit.su", {transports: ["websocket"]});
+	socket = io.connect("http://localhost", {port: 8080, transports: ["websocket"]});
 
 	remotePlayers = [];
 
@@ -74,6 +74,7 @@ function init() {
 	socket.on("disconnect", onSocketDisconnected);
 	socket.on("new player", onNewPlayer);
 	socket.on("move player", onMovePlayer);
+	socket.on("remove player", onRemovePlayer);
 
 	var playerName = $("#loginName").val();
 	localPlayer =  new Player(0, playerName);

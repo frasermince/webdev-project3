@@ -21,7 +21,7 @@ httpServer = http.createServer(function (request, response) {
         //
         file.serve(request, response);
     });
-}).listen(80);
+}).listen(8080);
 
 var Player = function(startX, newName) {
 	var x = startX;
@@ -78,7 +78,7 @@ var Player = function(startX, newName) {
 function startGameService() {
 	players = [];
 	socket = io.listen(httpServer);
-	httpServer.listen(8000);
+	httpServer.listen(8081);
 
 	socket.configure(function() {
 		socket.set("transports", ["websocket"]);
@@ -93,7 +93,6 @@ function onSocketConnection(client) {
 	client.on("disconnect", onClientDisconnect);
 	client.on("new player", onNewPlayer);
 	client.on("move player", onMovePlayer);
-	client.on("remove player", onRemovePlayer);
 }
 
 function onClientDisconnect() {

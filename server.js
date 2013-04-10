@@ -51,9 +51,9 @@ function startGameService() {
 
 function onSocketConnection(client) {
 	util.log("New Client Info: "+ client.id);
-
 	client.on("disconnect", onClientDisconnect);
 	client.on("new player", onNewPlayer);
+	client.on("move player", onMovePlayer);
 }
 
 function onClientDisconnect() {
@@ -87,6 +87,24 @@ function onNewPlayer(data) {
 
 	players.push(newPlayer);
 }
+
+function onMovePlayer(data) {
+	// Find player in array
+	var movePlayer = playerById(this.id);
+
+	// Player not found
+	if (!movePlayer) {
+		util.log("Player not found: "+this.id);
+		return;
+	};
+
+	// Update player position
+	movePlayer.setX(data.x);
+	movePlayer.setY(data.y);
+
+	// Broadcast updated position to connected socket clients
+	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY()});
+};
 
 function playerById(id) {
 	for (var i = 0; i < players.length; i++) {

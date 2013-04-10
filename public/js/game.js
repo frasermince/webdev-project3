@@ -5,9 +5,20 @@ var localPlayer;
 var remotePlayers;
 var socket;
 
-var Player = function(newName) {
+var Player = function(startX, newName) {
+	var x = startX;
 	var id;
 	var name = newName;
+	var moveAmount = 2;
+	
+	var getX = function(){
+		return x;
+	}
+	
+	var setX = function(newX){
+		x = newX;
+	}
+
 
 	var getName = function() {
 		return name;
@@ -16,6 +27,34 @@ var Player = function(newName) {
 	return {
 		getName: getName
 	}
+	
+		
+	// Update player position
+	var update = function(keys) {
+		// Previous position
+		var prevX = x,
+			prevY = y;
+
+		// Up key takes priority over down
+		if (keys.up) {
+			y -= moveAmount;
+		} else if (keys.down) {
+			y += moveAmount;
+		};
+
+		// Left key takes priority over right
+		if (keys.left) {
+			x -= moveAmount;
+		} else if (keys.right) {
+			x += moveAmount;
+		};
+
+		return (prevX != x || prevY != y) ? true : false;
+	};
+	
+	var draw = function(ctx) {
+		ctx.fillRect(x-5, 5, 10, 10);
+	};
 }
 
 function init() {
@@ -32,6 +71,7 @@ function init() {
 	socket.on("connect", onSocketConnected);
 	socket.on("disconnect", onSocketDisconnected);
 	socket.on("new player", onNewPlayer);
+	socket.on("move player", onMovePlayer);
 
 	var playerName = $("#loginName").val();
 	localPlayer =  new Player(playerName);
@@ -68,4 +108,49 @@ function playerById(id) {
 	};
 	
 	return false;
+};
+
+function onMovePlayer(data) {
+	var movePlayer = playerById(data.id);
+
+	// Player not found
+	if (!movePlayer) {
+		console.log("Player not found: "+data.id);
+		return;
+	};
+
+	// Update player position
+	movePlayer.setX(data.x);
+};
+
+
+function animate() {
+	update();
+	draw();
+
+	// Request a new animation frame using Paul Irish's shim
+	window.requestAnimFrame(animate);
+};
+
+
+function update() {
+	// Update local player and check for change
+	if (localPlayer.update(keys)) {
+		// Send local player data to the game server
+		socket.emit("move player", {x: localPlayer.getX(), y: localPlayer.getY()});
+	};
+};
+
+function draw() {
+	// Wipe the canvas clean
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	// Draw the local player
+	localPlayer.draw(ctx);
+
+	// Draw the remote players
+	var i;
+	for (i = 0; i < remotePlayers.length; i++) {
+		remotePlayers[i].draw(ctx);
+	};
 };

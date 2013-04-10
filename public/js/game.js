@@ -116,6 +116,10 @@ function onNewPlayer(data) {
 	remotePlayers.push(newPlayer);
 }
 
+function onRemovePlayer(data) {
+	console.log("Player Removed");
+}
+
 function playerById(id) {
 	for (var i = 0; i < players.length; i++) {
 		if (players[i].id == id) {
@@ -138,7 +142,6 @@ function onMovePlayer(data) {
 	// Update player position
 	movePlayer.setX(data.x);
 };
-
 
 function animate() {
 	update();

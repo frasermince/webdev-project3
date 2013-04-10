@@ -93,6 +93,7 @@ function onSocketConnection(client) {
 	client.on("disconnect", onClientDisconnect);
 	client.on("new player", onNewPlayer);
 	client.on("move player", onMovePlayer);
+	client.on("remove player", onRemovePlayer);
 }
 
 function onClientDisconnect() {

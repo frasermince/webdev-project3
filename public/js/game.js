@@ -1,3 +1,4 @@
+//Adapted from http://rawkes.com/articles/creating-a-real-time-multiplayer-game-with-websockets-and-node.html
 var canvas;
 var ctx;
 var keys;

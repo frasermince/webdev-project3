@@ -23,12 +23,7 @@ var Player = function(startX, newName) {
 	var getName = function() {
 		return name;
 	};
-
-	return {
-		getName: getName
-	}
 	
-		
 	// Update player position
 	var update = function(keys) {
 		// Previous position
@@ -55,6 +50,10 @@ var Player = function(startX, newName) {
 	var draw = function(ctx) {
 		ctx.fillRect(x-5, 5, 10, 10);
 	};
+
+	return {
+		getName: getName
+	}
 }
 
 function init() {
@@ -74,7 +73,7 @@ function init() {
 	socket.on("move player", onMovePlayer);
 
 	var playerName = $("#loginName").val();
-	localPlayer =  new Player(playerName);
+	localPlayer =  new Player(0, playerName);
 }
 
 function onSocketConnected() {

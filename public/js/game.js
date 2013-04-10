@@ -57,7 +57,10 @@ var Player = function(startX, newName) {
 }
 
 function init() {
+	window.addEventListener("keydown", onKeydown, false);
+	window.addEventListener("keyup", onKeyup, false);
 	canvas = document.getElementById("gameCanvas");
+	keys = new Keys();
 	ctx = canvas.getContext("2d");
 
 	canvas.width = window.innerWidth;
@@ -75,6 +78,20 @@ function init() {
 	var playerName = $("#loginName").val();
 	localPlayer =  new Player(0, playerName);
 }
+
+// Keyboard key down
+function onKeydown(e) {
+	if (localPlayer) {
+		keys.onKeyDown(e);
+	};
+};
+
+// Keyboard key up
+function onKeyup(e) {
+	if (localPlayer) {
+		keys.onKeyUp(e);
+	};
+};
 
 function onSocketConnected() {
 	console.log("Connected to socket server");

@@ -136,7 +136,7 @@ function update() {
 	// Update local player and check for change
 	if (localPlayer.update(keys)) {
 		// Send local player data to the game server
-		socket.emit("move player", {x: localPlayer.getX(), y: localPlayer.getY()});
+		socket.emit("move player", {x: localPlayer.getX()});
 	};
 };
 

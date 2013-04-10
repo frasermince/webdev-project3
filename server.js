@@ -28,6 +28,7 @@ var Player = function(startX, newName) {
 	var id;
 	var name = newName;
 	var moveAmount = 2;
+
 	
 	var getX = function(){
 		return x;
@@ -138,10 +139,9 @@ function onMovePlayer(data) {
 
 	// Update player position
 	movePlayer.setX(data.x);
-	movePlayer.setY(data.y);
 	console.log("server move");
 	// Broadcast updated position to connected socket clients
-	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY()});
+	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX()});
 };
 
 function playerById(id) {

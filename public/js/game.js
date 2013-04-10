@@ -6,11 +6,11 @@ var remotePlayers;
 var socket;
 var img;
 
-var Player = function(startX, startY) {
+var Player = function(startX, startY, newName) {
 	var x = startX;
 	var y = startY;
 	var id;
-	var name;
+	var name = newName;
 	var moveAmount = 2;
 	
 	var getX = function(){
@@ -19,6 +19,10 @@ var Player = function(startX, startY) {
 
 	var getY = function(){
 		return y;
+	}
+
+	var getName = function() {
+		return name;
 	}
 	
 	var setX = function(newX){
@@ -53,21 +57,19 @@ var Player = function(startX, startY) {
 	};
 	
 	var draw = function(ctx) {
-		
-	//ctx.drawImage(img, x-5, y-5); 
-	ctx.fillStyle="#FF0000";
-	ctx.fillRect(x-5, y-5, 10, 10);
-
-		// var img = document.createElement("img");
-		// img.src = "images/Poke_Ball_Sprite.png";
-		// img.onload = function() {
-  //           ctx.drawImage(img, 0, 0);        
-  //       }; 
+		if(name == "pikachu") {
+			var img = document.getElementById("pikachu");
+			ctx.drawImage(img, x-5, y-5);
+		} else {
+			var img = document.getElementById("pokeball");
+			ctx.drawImage(img, x-5, y-5);
+		}
 	};
 
 	return {
 		getX: getX,
 		getY: getY,
+		getName: getName,
 		setX: setX,
 		setY: setY,
 		update: update,
@@ -87,8 +89,7 @@ function init() {
 	keys = new Keys();
 
 	var playerName = $("#loginName").val();
-	localPlayer =  new Player(50, 50);
-	localPlayer.name = playerName;
+	localPlayer =  new Player(50, 50, playerName);
 
 	socket = io.connect("http://localhost", {port: 8080, transports: ["websocket"]});
 
@@ -128,7 +129,7 @@ function onSocketConnected() {
 	console.log("Connected to socket server");
 
 	// Send local player data to the game server
-	socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY(), name: localPlayer.name});
+	socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY(), name: localPlayer.getName()});
 }
 
 function onSocketDisconnected() {
@@ -140,9 +141,8 @@ function onNewPlayer(data) {
 	console.log("# Remote Players:", remotePlayers.length);
 
 	// Initialise the new player
-	var newPlayer = new Player(data.x, data.y);
+	var newPlayer = new Player(data.x, data.y, data.name);
 	newPlayer.id = data.id;
-	newPlayer.name = data.name;
 
 	// Add new player to the remote players array
 	remotePlayers.push(newPlayer);
@@ -164,7 +164,7 @@ function onMovePlayer(data) {
 
 function onRemovePlayer(data) {
 	var removePlayer = playerById(data.id);
-	console.log("Player", removePlayer.name, "has left the game");
+	console.log("Player", removePlayer.getName(), "has left the game");
 	
 	if(!removePlayer) {
 		console.log("Player not found: " + data.id);

@@ -142,6 +142,7 @@ function update() {
 };
 
 function draw() {
+	console.log("we are drawing");
 	// Wipe the canvas clean
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 

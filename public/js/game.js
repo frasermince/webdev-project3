@@ -147,7 +147,6 @@ function onSocketDisconnected() {
 
 function onNewPlayer(data) {
 	console.log("New player connected: ", data.name);
-	console.log("# Remote Players:", remotePlayers.length);
 
 	// Initialise the new player
 	var newPlayer = new Player(data.x, data.y, data.name);
@@ -155,6 +154,7 @@ function onNewPlayer(data) {
 
 	// Add new player to the remote players array
 	remotePlayers.push(newPlayer);
+	console.log("# Remote Players:", remotePlayers.length);
 }
 
 function onMovePlayer(data) {
@@ -183,7 +183,7 @@ function onRemovePlayer(data) {
 }
 
 function animate() {
-	console.log("animate");
+	//console.log("animate");
 	if(gameEnded == false) {
 		update();
 		draw();
@@ -216,7 +216,7 @@ function update() {
 };
 
 function draw() {
-	console.log("we are drawing", gameEnded);
+	//console.log("we are drawing", gameEnded);
 	// Wipe the canvas clean
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -227,7 +227,9 @@ function draw() {
 
 	// Draw the remote players
 	var i;
+	//console.log(remotePlayers.length);
 	for (i = 0; i < remotePlayers.length; i++) {
+		
 		remotePlayers[i].draw(ctx);
 
 		if(localPlayer.getX() == remotePlayers[i].getX() &&

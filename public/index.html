@@ -73,14 +73,32 @@
 
 		footer {
 			font-size: 70%;
-			margin: 0 auto;
 			text-align: center;
+			position:fixed;
+		    bottom:30px;
+		    width: 100%;
+		    margin: 0;
 		}
 
 		footer a {
 			padding-top:10px;
 			display:block;
 		}
+
+		#gameCanvas {
+			border-color:black;
+			border-width: 1px;
+			border-style:solid;
+			position:fixed;
+			top:0;
+			left:0px;
+		}
+
+		.noDisplay {
+			display: none;
+		}
+
+
 		</style>
 		<script src="js/jquery.1.9.1.js"></script>
 	</head>
@@ -91,13 +109,14 @@
 			<input type="text" id="loginName" class="floatLeft" placeholder="Please enter your name." required="true">
 			<button id="startButton" class="floatRight">Start</button>
 		</div>
-		<canvas id="gameCanvas"></canvas>
+		<canvas id="gameCanvas" class="noDisplay"></canvas>
 		<footer>
 			Developed in Abilene, Texas.
 			<a href="https://webops.nodejitsu.com/#bfm09a/webdev-project3"><img id="buildStatus" src="https://webhooks.nodejitsu.com/bfm09a/webdev-project3.png"></a>
 		</footer>
 	</body>
 	<script src="http://localhost:8080/socket.io/socket.io.js"></script>
+	<script src="js/requestAnimationFrame.js"></script>
 	<script src="js/keys.js"></script>
 	<script src="js/game.js"></script>
 	<script>
@@ -111,6 +130,8 @@
 		console.log($("#loginName").val());
 		$('#login').addClass('animated bounceOutUp');
 		init();
+		animate();
+		$('#gameCanvas').removeClass("noDisplay");
 	});
 
 	$("#loginName").focus();

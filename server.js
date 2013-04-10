@@ -1,11 +1,41 @@
 var util = require("util");
 var io = require("socket.io");
+var static = require('node-static');
+
+var Player = function(startX, startY) {
+	var x = startX;
+	var y = startY;
+	var id;
+	var name;
+
+	var getX = function() {
+		return x;
+	}
+
+	var getY = function() {
+		return y;
+	}
+
+	var setX = function(newX) {
+		x = newX;
+	}
+
+	var setY = function(newY) {
+		y = newY;
+	}
+
+	return {
+		getX: getX,
+		getY: getY,
+		setX: setX,
+		setY: setY,
+		id: id,
+		name: name
+	}
+}
 
 var socket;
 var players;
-
-
-var static = require('node-static');
 
 //
 // Create a node-static server instance to serve the './public' folder
@@ -23,60 +53,9 @@ httpServer = http.createServer(function (request, response) {
     });
 }).listen(8080);
 
-var Player = function(startX, newName) {
-	var x = startX;
-	var id;
-	var name = newName;
-	var moveAmount = 2;
-
-	
-	var getX = function(){
-		return x;
-	}
-	
-	var setX = function(newX){
-		x = newX;
-	}
-
-
-	var getName = function() {
-		return name;
-	};
-	
-	// Update player position
-	var update = function(keys) {
-		// Previous position
-		var prevX = x,
-			prevY = y;
-
-		// Up key takes priority over down
-		if (keys.up) {
-			y -= moveAmount;
-		} else if (keys.down) {
-			y += moveAmount;
-		};
-
-		// Left key takes priority over right
-		if (keys.left) {
-			x -= moveAmount;
-		} else if (keys.right) {
-			x += moveAmount;
-		};
-
-		return (prevX != x || prevY != y) ? true : false;
-	};
-	
-	var draw = function(ctx) {
-		ctx.fillRect(x-5, 5, 10, 10);
-	};
-
-	return {
-		getName: getName
-	}
-}
-
 function startGameService() {
 	players = [];
+
 	socket = io.listen(httpServer);
 	httpServer.listen(8081);
 
@@ -85,41 +64,51 @@ function startGameService() {
 		socket.set("log level", 2);
 	})
 
+	//Sets event handlers
 	socket.sockets.on("connection", onSocketConnection);
 }
 
 function onSocketConnection(client) {
+	//When a new socket is connected by a client
 	util.log("New Client Info: "+ client.id);
+
+	//Client disconnected
 	client.on("disconnect", onClientDisconnect);
+
+	//New player message
 	client.on("new player", onNewPlayer);
+
+	//Move player message
 	client.on("move player", onMovePlayer);
 }
 
 function onClientDisconnect() {
 	util.log("Player has disconnected: "+this.id);
 
-	var removingPlayerWithIndex = playerById(this.id);
+	var removePlayer = playerById(this.id);
 
-	if (!removingPlayerWithIndex) {
+	if (!removePlayer) {
 		util.log("Player not found: "+this.id);
 		return;
 	}
 
-	players.splice(players.indexOf(removingPlayerWithIndex), 1);
-	this.broadcast.emit("remove player", {id: this.id});	
+	players.splice(players.indexOf(removePlayer), 1);
+
+	this.broadcast.emit("remove player", {id: this.id});
 }
 
 function onNewPlayer(data) {
-	var newPlayer = new Player(0, data.name);
-	newPlayer.id = data.id;
+	var newPlayer = new Player(data.x, data.y);
+	newPlayer.id = this.id;
+	newPlayer.name = data.name;
 
-	this.broadcast.emit("new player", {name: newPlayer.getName()});
+	this.broadcast.emit("new player", {id: newPlayer.id, x: newPlayer.getX(), y: newPlayer.getY(), name: newPlayer.name});
 
 	// Send existing players to the new player
 	var i, existingPlayer;
 	for (i = 0; i < players.length; i++) {
 		existingPlayer = players[i];
-		this.emit("new player", {name: existingPlayer.getName()});
+		this.emit("new player", {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY(), name: existingPlayer.name});
 	}
 		
 	// Add new player to the players array
@@ -139,9 +128,9 @@ function onMovePlayer(data) {
 
 	// Update player position
 	movePlayer.setX(data.x);
-	console.log("server move");
+	movePlayer.setY(data.y);
 	// Broadcast updated position to connected socket clients
-	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX()});
+	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY(), name: movePlayer.name});
 };
 
 function playerById(id) {
@@ -149,7 +138,7 @@ function playerById(id) {
 		if (players[i].id == id) {
 			return players[i];
 		}
-	};
+	}
 	
 	return false;
 };

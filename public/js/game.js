@@ -4,25 +4,30 @@ var keys;
 var localPlayer;
 var remotePlayers;
 var socket;
+var img;
 
-var Player = function(startX, newName) {
+var Player = function(startX, startY) {
 	var x = startX;
+	var y = startY;
 	var id;
-	var name = newName;
+	var name;
 	var moveAmount = 2;
 	
 	var getX = function(){
 		return x;
+	}
+
+	var getY = function(){
+		return y;
 	}
 	
 	var setX = function(newX){
 		x = newX;
 	}
 
-
-	var getName = function() {
-		return name;
-	};
+	var setY = function(newY){
+		y = newY;
+	}
 	
 	// Update player position
 	var update = function(keys) {
@@ -48,36 +53,61 @@ var Player = function(startX, newName) {
 	};
 	
 	var draw = function(ctx) {
-		ctx.fillRect(x-5, 5, 10, 10);
+		
+	//ctx.drawImage(img, x-5, y-5); 
+	ctx.fillStyle="#FF0000";
+	ctx.fillRect(x-5, y-5, 10, 10);
+
+		// var img = document.createElement("img");
+		// img.src = "images/Poke_Ball_Sprite.png";
+		// img.onload = function() {
+  //           ctx.drawImage(img, 0, 0);        
+  //       }; 
 	};
 
 	return {
-		getName: getName
+		getX: getX,
+		getY: getY,
+		setX: setX,
+		setY: setY,
+		update: update,
+		draw: draw
 	}
 }
 
 function init() {
-	window.addEventListener("keydown", onKeydown, false);
-	window.addEventListener("keyup", onKeyup, false);
 	canvas = document.getElementById("gameCanvas");
+
 	keys = new Keys();
 	ctx = canvas.getContext("2d");
 
 	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight*0.5;
+	canvas.height = window.innerHeight-100;
+
+	keys = new Keys();
+
+	var playerName = $("#loginName").val();
+	localPlayer =  new Player(50, 50);
+	localPlayer.name = playerName;
 
 	socket = io.connect("http://localhost", {port: 8080, transports: ["websocket"]});
 
 	remotePlayers = [];
 
+	//Set event handlers
+	window.addEventListener("keydown", onKeydown, false);
+	window.addEventListener("keyup", onKeyup, false);
+
+	//On connection with socket
 	socket.on("connect", onSocketConnected);
+
+	//On disconnect with socket
 	socket.on("disconnect", onSocketDisconnected);
+
+	//Event listeners from server. Calls when received from server
 	socket.on("new player", onNewPlayer);
 	socket.on("move player", onMovePlayer);
 	socket.on("remove player", onRemovePlayer);
-
-	var playerName = $("#loginName").val();
-	localPlayer =  new Player(0, playerName);
 }
 
 // Keyboard key down
@@ -98,7 +128,7 @@ function onSocketConnected() {
 	console.log("Connected to socket server");
 
 	// Send local player data to the game server
-	socket.emit("new player", {name: localPlayer.getName()});
+	socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY(), name: localPlayer.name});
 }
 
 function onSocketDisconnected() {
@@ -110,26 +140,13 @@ function onNewPlayer(data) {
 	console.log("# Remote Players:", remotePlayers.length);
 
 	// Initialise the new player
-	var newPlayer = new Player(data.name);
+	var newPlayer = new Player(data.x, data.y);
 	newPlayer.id = data.id;
+	newPlayer.name = data.name;
 
 	// Add new player to the remote players array
 	remotePlayers.push(newPlayer);
 }
-
-function onRemovePlayer(data) {
-	console.log("Player Removed");
-}
-
-function playerById(id) {
-	for (var i = 0; i < players.length; i++) {
-		if (players[i].id == id) {
-			return players[i];
-		}
-	};
-	
-	return false;
-};
 
 function onMovePlayer(data) {
 	var movePlayer = playerById(data.id);
@@ -142,7 +159,19 @@ function onMovePlayer(data) {
 
 	// Update player position
 	movePlayer.setX(data.x);
+	movePlayer.setY(data.y);
 };
+
+function onRemovePlayer(data) {
+	var removePlayer = playerById(data.id);
+	console.log("Player", removePlayer.name, "has left the game");
+	
+	if(!removePlayer) {
+		console.log("Player not found: " + data.id);
+		return;
+	}
+	remotePlayers.splice(remotePlayers.indexOf(removePlayer),1);
+}
 
 function animate() {
 	update();
@@ -153,11 +182,21 @@ function animate() {
 };
 
 
+function playerById(id) {
+	for (var i = 0; i < remotePlayers.length; i++) {
+		if (remotePlayers[i].id == id) {
+			return remotePlayers[i];
+		}
+	}
+	
+	return false;
+};
+
 function update() {
 	// Update local player and check for change
 	if (localPlayer.update(keys)) {
 		// Send local player data to the game server
-		socket.emit("move player", {x: localPlayer.getX()});
+		socket.emit("move player", {x: localPlayer.getX(), y: localPlayer.getY()});
 	};
 };
 

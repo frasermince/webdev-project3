@@ -2,15 +2,75 @@ var util = require("util");
 var io = require("socket.io");
 var static = require('node-static');
 
-var Player = function(startX, startY) {
+var Missile = function(iden, startX, startY, direction){
+	var count = 0;
 	var x = startX;
 	var y = startY;
-	var id;
-	var name;
+	var id = iden;
+	//var img = document.getElementById("miss");//insert image here
+	var getX = function(){
+		return x;
+	};
+
+	var getY = function(){
+		return y;
+	};
+	
+	var getDirection = function(){
+		return direction;
+	};
+
+
+	var getName = function() {
+		return name;
+	}
+	
+	var setX = function(newX){
+		x = newX;
+	};
+
+	var setY = function(newY){
+		y = newY;
+	};
+
+	var update = function(){
+		count++;
+		y += direction;
+	};
+	var draw = function(ctx) {
+		ctx.drawImage(img, x-5, y-5);	
+	};
+	return {
+		getX: getX,
+		getY: getY,
+		getName: getName,
+		setX: setX,
+		setY: setY,
+		update: update,
+		//getImg: getImg,
+		id: id,
+		getDirection: getDirection,
+		draw: draw
+	}
+}
+
+
+var Player = function(iden, n, startX, startY) {
+	var x = startX;
+	var y = startY;
+	//var id;
+	var name = n;
+	var id = iden;
+	//var imageNum = image;
+	
 
 	var getX = function() {
 		return x;
 	}
+	
+	/*var getImg = function(){
+		return imageNum;	
+	}*/
 
 	var getY = function() {
 		return y;
@@ -30,12 +90,15 @@ var Player = function(startX, startY) {
 		setX: setX,
 		setY: setY,
 		id: id,
-		name: name
+		name: name,
+		//getImg: getImg
 	}
 }
 
 var socket;
 var players;
+var missiles;
+var identification = 0;
 
 //
 // Create a node-static server instance to serve the './public' folder
@@ -55,6 +118,7 @@ httpServer = http.createServer(function (request, response) {
 
 function startGameService() {
 	players = [];
+	missiles = [];
 
 	socket = io.listen(httpServer);
 	httpServer.listen(8081);
@@ -74,12 +138,27 @@ function onSocketConnection(client) {
 
 	//Client disconnected
 	client.on("disconnect", onClientDisconnect);
+	
+	//client.on("get", getData);
+	
+	client.on("get", onGetData);
 
 	//New player message
 	client.on("new player", onNewPlayer);
 
 	//Move player message
 	client.on("move player", onMovePlayer);
+	//this.emit("create",{l: (players.size % 2)})
+	//Add missiles
+	client.on("new missile", onNewMissile);
+	
+	//Move missiles to new location
+	client.on("move missile", onMoveMissile);
+	
+}
+
+function onGetData(data){
+	this.emit("create", {id: identification++})
 }
 
 function onClientDisconnect() {
@@ -88,7 +167,7 @@ function onClientDisconnect() {
 	var removePlayer = playerById(this.id);
 
 	if (!removePlayer) {
-		util.log("Player not found: "+this.id);
+		util.log("Remove: Player not found: "+this.id);
 		return;
 	}
 
@@ -98,7 +177,7 @@ function onClientDisconnect() {
 }
 
 function onNewPlayer(data) {
-	var newPlayer = new Player(data.x, data.y);
+	var newPlayer = new Player(data.id, data.name,data.x, data.y);
 	newPlayer.id = this.id;
 	newPlayer.name = data.name;
 
@@ -108,21 +187,26 @@ function onNewPlayer(data) {
 	var i, existingPlayer;
 	for (i = 0; i < players.length; i++) {
 		existingPlayer = players[i];
-		this.emit("new player", {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY(), name: existingPlayer.name});
+		this.emit("new player", {id: existingPlayer.id, name: existingPlayer.name, x: existingPlayer.getX(), y: existingPlayer.getY()});
+	}
+	var j, existingMissile;
+	for(j = 0; j < missiles.length; j++){
+		existingMissile = missiles[j];
+		this.emit("new missile", {name: existingMissile.id, x: existingMissile.getX(), y: existingMissile.getY(), direction: existingMissile.getDirection()})
 	}
 		
 	// Add new player to the players array
 
 	players.push(newPlayer);
-}
+};
 
 function onMovePlayer(data) {
 	// Find player in array
-	var movePlayer = playerById(this.id);
+	var movePlayer = playerById(data.id);
 
 	// Player not found
 	if (!movePlayer) {
-		util.log("Player not found: "+this.id);
+		util.log("Move: Player not found: "+this.name);
 		return;
 	};
 
@@ -130,8 +214,27 @@ function onMovePlayer(data) {
 	movePlayer.setX(data.x);
 	movePlayer.setY(data.y);
 	// Broadcast updated position to connected socket clients
-	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY(), name: movePlayer.name});
+	this.broadcast.emit("move player", {id: movePlayer.name, x: movePlayer.getX(), y: movePlayer.getY(), name: movePlayer.name});
 };
+
+
+function onNewMissile(data){
+	var newMissile = new Missile(data.name ,data.x, data.y, data.direction);
+	this.broadcast.emit("new missile",{name: newMissile.id, x: newMissile.getX(), y: newMissile.getY(), direction: newMissile.getDirection()});
+	missiles.push(newMissile);
+}
+
+function onMoveMissile(data){
+	var currentMissile = missileById(data.ident);
+	
+	// Missile  found
+	if (movePlayer) {
+		currentMissile.setX(data.x);
+		currentMissile.setY(data.Y);
+		this.broadcast.emit("move missile", {name: currentMissile.getName(), x: currentMissile.getX(), y: currentMissile.getY(), direction:currentMissile.getDirection()})
+	};
+}
+
 
 function playerById(id) {
 	for (var i = 0; i < players.length; i++) {
@@ -142,5 +245,14 @@ function playerById(id) {
 	
 	return false;
 };
+
+function missileById(id){
+	for(var i = 0; i < missiles.length; i++){
+		if(missiles[i].id = id){
+			return missiles[i];
+		}
+	}
+	return false;
+}
 
 startGameService();

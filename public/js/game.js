@@ -4,16 +4,90 @@ var ctx;
 var keys;
 var localPlayer;
 var remotePlayers;
+var missiles;
 var socket;
 var img;
+var playerName;
 var gameEnded = false;
+var first = true;
 
-var Player = function(startX, startY, newName) {
+var Missile = function(iden, startX,startY, d){
+	var id = iden;
+	var direction = d;
+	var count = 0;
 	var x = startX;
 	var y = startY;
-	var id;
+	var img = document.getElementById("miss");//insert image here
+	var getX = function(){
+		return x;
+	};
+
+	var getY = function(){
+		return y;
+	};
+
+	var getName = function() {
+		return name;
+	}
+	
+	var getDirection = function(){
+		return direction;
+	};
+	
+	var setX = function(newX){
+		x = newX;
+	};
+
+	var setY = function(newY){
+		y = newY;
+	};
+
+	var update = function(){
+		count++;
+		y += direction;
+	};
+	var draw = function(ctx) {
+		ctx.drawImage(img, x-5, y-5);	
+	};
+	return {
+		getX: getX,
+		getY: getY,
+		//getName: getName,
+		id: id,
+		setX: setX,
+		setY: setY,
+		update: update,
+		//getImg: getImg,
+		getDirection: getDirection,
+		draw: draw
+	}
+
+}
+
+var Player = function(iden, newName, startX, startY) {
+	
+	var count = 0;
+	var img
+	var x = startX;
+	var y = startY;
+	var id = iden;
 	var name = newName;
 	var moveAmount = 2;
+	var direction;
+	if(id % 2 == 1) {
+		console.log("odd");
+		img = document.getElementById("pikachu");
+		direction = -1;
+	}
+	else{
+		console.log("even");
+		img = document.getElementById("pokeball");
+		direction = 1;
+	}
+	
+	/*var getImg = function(){
+		return imageNum;
+	}*/
 	
 	var getX = function(){
 		return x;
@@ -40,6 +114,11 @@ var Player = function(startX, startY, newName) {
 		// Previous position
 		var prevX = x,
 			prevY = y;
+			
+		if(keys.fire){
+			missiles.push(new Missile( id + 0 + (count++),x, y + direction, direction));
+			socket.emit("new missile", {id: id+(count), x: x, y: y + direction, direction: direction});
+		}
 
 		// Up key takes priority over down
 		if (keys.up) {
@@ -59,22 +138,19 @@ var Player = function(startX, startY, newName) {
 	};
 	
 	var draw = function(ctx) {
-		if(name == "pikachu") {
-			var img = document.getElementById("pikachu");
-			ctx.drawImage(img, x-5, y-5);
-		} else {
-			var img = document.getElementById("pokeball");
-			ctx.drawImage(img, x-5, y-5);
-		}
+		ctx.drawImage(img, x-5, y-5);
+		
 	};
 
 	return {
 		getX: getX,
 		getY: getY,
 		getName: getName,
+		id: id,
 		setX: setX,
 		setY: setY,
 		update: update,
+		//getImg: getImg,
 		draw: draw
 	}
 }
@@ -92,32 +168,37 @@ function init() {
 
 	var startX = Math.round(Math.random()*(canvas.height-5));
 	var startY = Math.round(Math.random()*(canvas.width-5));
-
-	var playerName = $("#loginName").val();
-	if(playerName == "pikachu") {
-		localPlayer =  new Player(500, 50, playerName);
-	} else {
-		localPlayer =  new Player(50, 50, playerName);
-	}
-
+	playerName = $("#loginName").val();
+	
+	
 	socket = io.connect("http://localhost", {port: 8080, transports: ["websocket"]});
-
+	missiles = [];
 	remotePlayers = [];
+	console.log(remotePlayers.length);
+	
 
+	
 	//Set event handlers
 	window.addEventListener("keydown", onKeydown, false);
 	window.addEventListener("keyup", onKeyup, false);
-
+	
+	socket.on("create", createLocal);
 	//On connection with socket
 	socket.on("connect", onSocketConnected);
-
+	
 	//On disconnect with socket
 	socket.on("disconnect", onSocketDisconnected);
 
 	//Event listeners from server. Calls when received from server
+	socket.on("new missile", onNewMissile);
 	socket.on("new player", onNewPlayer);
+	socket.on("move missile", onMoveMissile);
 	socket.on("move player", onMovePlayer);
 	socket.on("remove player", onRemovePlayer);
+	//socket.on("pass", onPass);
+	
+	console.log(remotePlayers.length);
+	
 }
 
 // Keyboard key down
@@ -136,9 +217,14 @@ function onKeyup(e) {
 
 function onSocketConnected() {
 	console.log("Connected to socket server");
+	socket.emit("get",{});
+}
+
+function createLocal(data){
+	localPlayer =  new Player(data.id, playerName, 500, 50);
 
 	// Send local player data to the game server
-	socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY(), name: localPlayer.getName()});
+	socket.emit("new player", {id: localPlayer.id, name: localPlayer.getName(), x: localPlayer.getX(), y: localPlayer.getY()});
 }
 
 function onSocketDisconnected() {
@@ -146,15 +232,22 @@ function onSocketDisconnected() {
 }
 
 function onNewPlayer(data) {
-	console.log("New player connected: ", data.name);
+	
+	console.log("New player connected: ", data.getName());
 
 	// Initialise the new player
-	var newPlayer = new Player(data.x, data.y, data.name);
-	newPlayer.id = data.id;
+	var newPlayer = new Player(data.id, data.name, data.x, data.y);
+	//newPlayer.name = data.id;
 
 	// Add new player to the remote players array
 	remotePlayers.push(newPlayer);
 	console.log("# Remote Players:", remotePlayers.length);
+}
+
+function onNewMissile(data){
+	console.log( "Missile fired");
+	var newMissile = new Missile(data.id, data.x, data.y, data.direction);
+	missiles.push(newMissile);
 }
 
 function onMovePlayer(data) {
@@ -162,7 +255,7 @@ function onMovePlayer(data) {
 
 	// Player not found
 	if (!movePlayer) {
-		console.log("Player not found: "+data.id);
+		console.log("Move: Player not found: "+data.id);
 		return;
 	};
 
@@ -171,12 +264,18 @@ function onMovePlayer(data) {
 	movePlayer.setY(data.y);
 };
 
+function onMoveMissile(data){
+	var currentMissile = missileById(data.id);
+	movePlayer.setX(data.x);
+	movePlayer.setY(data.y);
+}
+
 function onRemovePlayer(data) {
 	var removePlayer = playerById(data.id);
 	console.log("Player", removePlayer.getName(), "has left the game");
 	
 	if(!removePlayer) {
-		console.log("Player not found: " + data.id);
+		console.log("Client Remove: Player not found: " + data.id);
 		return;
 	}
 	remotePlayers.splice(remotePlayers.indexOf(removePlayer),1);
@@ -207,11 +306,27 @@ function playerById(id) {
 	return false;
 };
 
+function missileById(id) {
+	for (var i = 0; i < remotePlayers.length; i++) {
+		if (missiles[i].id == id) {
+			return missiles[i];
+		}
+	}
+	
+	return false;
+};
+
+
 function update() {
 	// Update local player and check for change
-	if (localPlayer.update(keys)) {
+	if (localPlayer != null && localPlayer.update(keys)) {
 		// Send local player data to the game server
-		socket.emit("move player", {x: localPlayer.getX(), y: localPlayer.getY()});
+		socket.emit("move player", {id: localPlayer.id, x: localPlayer.getX(), y: localPlayer.getY()});
+		var i;
+		for(i = 0; i < missiles.length; i++){
+			console.log("missile: " + missiles[i].id);
+			socket.emit("move missile", {ident: missiles[i].id, x: missiles[i].getX(), y: missiles[i].getY(), direction: missiles[i].getDirection()});
+		}
 	};
 };
 
@@ -221,7 +336,9 @@ function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	// Draw the local player
-	localPlayer.draw(ctx);
+	if(localPlayer != null){
+		localPlayer.draw(ctx);
+	}
 	var pikachuImage = document.getElementById("pikachu");
 	var pokeballImage = document.getElementById("pokeball");
 
@@ -232,16 +349,21 @@ function draw() {
 		
 		remotePlayers[i].draw(ctx);
 
-		if(localPlayer.getX() == remotePlayers[i].getX() &&
-			localPlayer.getY() == remotePlayers[i].getY()) {
+		if(((localPlayer.getX() - remotePlayers[i].getX() >= 0 && localPlayer.getX() - remotePlayers[i].getX() <= 15) || (localPlayer.getX() - remotePlayers[i].getX() <= 0 && localPlayer.getX() - remotePlayers[i].getX() >= -15)) &&
+			((localPlayer.getY() - remotePlayers[i].getY() >= 0 && localPlayer.getY() - remotePlayers[i].getY() <= 15) || (localPlayer.getY() - remotePlayers[i].getY() <= 0 && localPlayer.getY() - remotePlayers[i].getY() >= -15))) {
 			console.log("End game");
 			
 			gameEnded = true;
-		}
+			}
+	
 		// if(localPlayer.getName() == "pikachu" && remotePlayers[i].getName() != "pikachu") {
 		// 	console.log(isPixelCollision(pikachuImage, localPlayer.getX(), localPlayer.getY(), pokeballImage, remotePlayers[i].getX(), remotePlayers[i].getY(), true));
 		// }
 	};
+	var j;
+	for (j = 0; j < missiles.length; j++) {
+		missiles[j].draw(ctx);
+	}
 
 	
 	

@@ -19,11 +19,6 @@ var Missile = function(iden, startX, startY, direction){
 	var getDirection = function(){
 		return direction;
 	};
-
-
-	var getName = function() {
-		return name;
-	}
 	
 	var setX = function(newX){
 		x = newX;
@@ -43,7 +38,7 @@ var Missile = function(iden, startX, startY, direction){
 	return {
 		getX: getX,
 		getY: getY,
-		getName: getName,
+		//getName: getName,
 		setX: setX,
 		setY: setY,
 		update: update,
@@ -228,10 +223,10 @@ function onMoveMissile(data){
 	var currentMissile = missileById(data.ident);
 	
 	// Missile  found
-	if (movePlayer) {
+	if (currentMissile) {
 		currentMissile.setX(data.x);
 		currentMissile.setY(data.Y);
-		this.broadcast.emit("move missile", {name: currentMissile.getName(), x: currentMissile.getX(), y: currentMissile.getY(), direction:currentMissile.getDirection()})
+		this.broadcast.emit("move missile", {id: currentMissile.id, x: currentMissile.getX(), y: currentMissile.getY(), direction:currentMissile.getDirection()})
 	};
 }
 

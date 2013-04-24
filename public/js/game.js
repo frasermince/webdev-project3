@@ -10,6 +10,7 @@ var img;
 var playerName;
 var gameEnded = false;
 var first = true;
+var myMissiles = [];
 
 var Missile = function(iden, startX,startY, d){
 	var id = iden;
@@ -44,7 +45,7 @@ var Missile = function(iden, startX,startY, d){
 
 	var update = function(){
 		count++;
-		y += direction;
+		y += direction * 5;
 	};
 	var draw = function(ctx) {
 		ctx.drawImage(img, x-5, y-5);	
@@ -77,12 +78,12 @@ var Player = function(iden, newName, startX, startY) {
 	if(id % 2 == 1) {
 		console.log("odd");
 		img = document.getElementById("pikachu");
-		direction = -1;
+		direction = 1;
 	}
 	else{
 		console.log("even");
 		img = document.getElementById("pokeball");
-		direction = 1;
+		direction = -1;
 	}
 	
 	/*var getImg = function(){
@@ -116,7 +117,9 @@ var Player = function(iden, newName, startX, startY) {
 			prevY = y;
 			
 		if(keys.fire){
-			missiles.push(new Missile( id + 0 + (count++),x, y + direction, direction));
+			tempMissile = new Missile( id + 0 + (count++),x, y + direction, direction)
+			missiles.push(tempMissile);
+			myMissiles.push(tempMissile);
 			socket.emit("new missile", {id: id+(count), x: x, y: y + direction, direction: direction});
 		}
 
@@ -319,14 +322,13 @@ function missileById(id) {
 
 function update() {
 	// Update local player and check for change
+	for( var i = 0; i < myMissiles.length; i++){
+		myMissiles[i].update();
+		socket.emit("move missile", {ident: missiles[i].id, x: missiles[i].getX(), y: missiles[i].getY(), direction: missiles[i].getDirection()});
+	}
 	if (localPlayer != null && localPlayer.update(keys)) {
 		// Send local player data to the game server
 		socket.emit("move player", {id: localPlayer.id, x: localPlayer.getX(), y: localPlayer.getY()});
-		var i;
-		for(i = 0; i < missiles.length; i++){
-			console.log("missile: " + missiles[i].id);
-			socket.emit("move missile", {ident: missiles[i].id, x: missiles[i].getX(), y: missiles[i].getY(), direction: missiles[i].getDirection()});
-		}
 	};
 };
 

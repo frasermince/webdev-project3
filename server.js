@@ -93,7 +93,7 @@ var Player = function(iden, n, startX, startY) {
 var socket;
 var players;
 var missiles;
-var identification = 0;
+var identification = 1;
 
 //
 // Create a node-static server instance to serve the './public' folder
@@ -153,7 +153,8 @@ function onSocketConnection(client) {
 }
 
 function onGetData(data){
-	this.emit("create", {id: identification++})
+	this.emit("create", {id: identification});
+	identification++;
 }
 
 function onClientDisconnect() {
@@ -173,8 +174,8 @@ function onClientDisconnect() {
 
 function onNewPlayer(data) {
 	var newPlayer = new Player(data.id, data.name,data.x, data.y);
-	newPlayer.id = this.id;
-	newPlayer.name = data.name;
+	//newPlayer.id = this.id;
+	//newPlayer.name = data.name;
 
 	this.broadcast.emit("new player", {id: newPlayer.id, x: newPlayer.getX(), y: newPlayer.getY(), name: newPlayer.name});
 
@@ -187,7 +188,7 @@ function onNewPlayer(data) {
 	var j, existingMissile;
 	for(j = 0; j < missiles.length; j++){
 		existingMissile = missiles[j];
-		this.emit("new missile", {name: existingMissile.id, x: existingMissile.getX(), y: existingMissile.getY(), direction: existingMissile.getDirection()})
+		this.emit("new missile", {id: existingMissile.id, x: existingMissile.getX(), y: existingMissile.getY(), direction: existingMissile.getDirection()})
 	}
 		
 	// Add new player to the players array
@@ -197,6 +198,7 @@ function onNewPlayer(data) {
 
 function onMovePlayer(data) {
 	// Find player in array
+	
 	var movePlayer = playerById(data.id);
 
 	// Player not found
@@ -209,25 +211,27 @@ function onMovePlayer(data) {
 	movePlayer.setX(data.x);
 	movePlayer.setY(data.y);
 	// Broadcast updated position to connected socket clients
-	this.broadcast.emit("move player", {id: movePlayer.name, x: movePlayer.getX(), y: movePlayer.getY(), name: movePlayer.name});
+	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY(), name: movePlayer.name});
 };
 
 
 function onNewMissile(data){
-	var newMissile = new Missile(data.name ,data.x, data.y, data.direction);
-	this.broadcast.emit("new missile",{name: newMissile.id, x: newMissile.getX(), y: newMissile.getY(), direction: newMissile.getDirection()});
+	var newMissile = new Missile(data.id ,data.x, data.y, data.direction);
+	util.log("new missile id: " + data.id);
 	missiles.push(newMissile);
+	this.broadcast.emit("new missile",{id: data.id, x: newMissile.getX(), y: newMissile.getY(), direction: newMissile.getDirection()});
 }
 
 function onMoveMissile(data){
-	var currentMissile = missileById(data.ident);
-	
+	var currentMissile = missileById(data.id);
+	if(!currentMissile){
+		return;
+	}
 	// Missile  found
-	if (currentMissile) {
-		currentMissile.setX(data.x);
-		currentMissile.setY(data.Y);
-		this.broadcast.emit("move missile", {id: currentMissile.id, x: currentMissile.getX(), y: currentMissile.getY(), direction:currentMissile.getDirection()})
-	};
+	currentMissile.setX(data.x);
+	currentMissile.setY(data.Y);
+	//util.log("id " + currentMissile.id);
+	this.broadcast.emit("move missile", {id: currentMissile.id, x: currentMissile.getX(), y: currentMissile.getY(), direction:currentMissile.getDirection()});
 }
 
 
@@ -242,8 +246,11 @@ function playerById(id) {
 };
 
 function missileById(id){
+	//util.log("comparing: " + id);
 	for(var i = 0; i < missiles.length; i++){
+		//util.log("with: " + missiles[i].id);
 		if(missiles[i].id = id){
+			//util.log("returning " + missiles[i].id);
 			return missiles[i];
 		}
 	}

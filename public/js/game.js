@@ -11,9 +11,11 @@ var playerName;
 var gameEnded = false;
 var first = true;
 var myMissiles = [];
+var otherMissiles = [];
 
 var Missile = function(iden, startX,startY, d){
 	var id = iden;
+	//console.log("id = " + id);
 	var direction = d;
 	var count = 0;
 	var x = startX;
@@ -113,14 +115,19 @@ var Player = function(iden, newName, startX, startY) {
 	// Update player position
 	var update = function(keys) {
 		// Previous position
+		var zero = 0;
 		var prevX = x,
 			prevY = y;
 			
 		if(keys.fire){
-			tempMissile = new Missile( id + 0 + (count++),x, y + direction, direction)
+			missId = parseInt(id.toString() + "0" + count.toString(),10);
+			count++;
+			//console.log("missId: " + missId);
+			tempMissile = new Missile(missId, x + 15, y + direction, direction)
 			missiles.push(tempMissile);
 			myMissiles.push(tempMissile);
-			socket.emit("new missile", {id: id+(count), x: x, y: y + direction, direction: direction});
+			//console.log("emit id: " + missId);
+			socket.emit("new missile", {id: missId, x: x + 15, y: y + direction, direction: direction});
 		}
 
 		// Up key takes priority over down
@@ -224,7 +231,11 @@ function onSocketConnected() {
 }
 
 function createLocal(data){
-	localPlayer =  new Player(data.id, playerName, 500, 50);
+	if(data.id % 2 == 1)
+		localPlayer =  new Player(data.id, playerName, 500, 50);
+	else
+		localPlayer =  new Player(data.id, playerName, 500, 500);
+	console.log("id: " + data.id);
 
 	// Send local player data to the game server
 	socket.emit("new player", {id: localPlayer.id, name: localPlayer.getName(), x: localPlayer.getX(), y: localPlayer.getY()});
@@ -236,7 +247,7 @@ function onSocketDisconnected() {
 
 function onNewPlayer(data) {
 	
-	console.log("New player connected: ", data.getName());
+	console.log("New player connected: ", data.name);
 
 	// Initialise the new player
 	var newPlayer = new Player(data.id, data.name, data.x, data.y);
@@ -248,9 +259,10 @@ function onNewPlayer(data) {
 }
 
 function onNewMissile(data){
-	console.log( "Missile fired");
+	console.log( "Missile fired " + data.id);
 	var newMissile = new Missile(data.id, data.x, data.y, data.direction);
 	missiles.push(newMissile);
+	otherMissiles.push(newMissile);
 }
 
 function onMovePlayer(data) {
@@ -268,9 +280,14 @@ function onMovePlayer(data) {
 };
 
 function onMoveMissile(data){
+	console.log("id: " + data.id);
 	var currentMissile = missileById(data.id);
-	movePlayer.setX(data.x);
-	movePlayer.setY(data.y);
+	console.log("missile id: " + currentMissile.id);
+	if(!currentMissile){
+		return;
+	}
+	currentMissile.setX(data.x);
+	currentMissile.setY(data.y);
 }
 
 function onRemovePlayer(data) {
@@ -310,8 +327,11 @@ function playerById(id) {
 };
 
 function missileById(id) {
-	for (var i = 0; i < remotePlayers.length; i++) {
+	//console.log("compare: " + id);
+	for (var i = 0; i < missiles.length; i++) {
+		//console.log("with " + missiles[i].id);
 		if (missiles[i].id == id) {
+			//console.log("returning " + missiles[i].id);
 			return missiles[i];
 		}
 	}
@@ -324,7 +344,7 @@ function update() {
 	// Update local player and check for change
 	for( var i = 0; i < myMissiles.length; i++){
 		myMissiles[i].update();
-		socket.emit("move missile", {ident: missiles[i].id, x: missiles[i].getX(), y: missiles[i].getY(), direction: missiles[i].getDirection()});
+		socket.emit("move missile", {id: myMissiles[i].id, x: myMissiles[i].getX(), y: myMissiles[i].getY(), direction: myMissiles[i].getDirection()});
 	}
 	if (localPlayer != null && localPlayer.update(keys)) {
 		// Send local player data to the game server
@@ -362,11 +382,14 @@ function draw() {
 		// 	console.log(isPixelCollision(pikachuImage, localPlayer.getX(), localPlayer.getY(), pokeballImage, remotePlayers[i].getX(), remotePlayers[i].getY(), true));
 		// }
 	};
-	var j;
-	for (j = 0; j < missiles.length; j++) {
-		missiles[j].draw(ctx);
+	for (i = 0; i < otherMissiles.length; i++) {
+		otherMissiles[i].draw(ctx);
+		if(((localPlayer.getX() - otherMissiles[i].getX() >= 0 && localPlayer.getX() - otherMissiles[i].getX() <= 5) || (localPlayer.getX() - otherMissiles[i].getX() <= 0 && localPlayer.getX() - otherMissiles[i].getX() >= -5)) &&
+			((localPlayer.getY() - otherMissiles[i].getY() >= 0 && localPlayer.getY() - otherMissiles[i].getY() <= 5) || (localPlayer.getY() - otherMissiles[i].getY() <= 0 && localPlayer.getY() - otherMissiles[i].getY() >= -5))) {
+			gameEnded = true;
+		}
+	};
+	for(i = 0; i < missiles.length; i++){
+		missiles[i].draw(ctx);
 	}
-
-	
-	
 };

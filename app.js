@@ -1,24 +1,30 @@
-// Including libraries
-
-var app = require('http').createServer(handler),
-	io = require('socket.io').listen(app),
-	static = require('node-static'); // for serving files
-
-// This will make all the files in the current folder
-// accessible from the web
-var fileServer = new static.Server('./');
-	
-// This is the port for our web server.
-// you will need to go to http://localhost:8080 to see it
-app.listen(8080);
-
-// If the URL of the socket server is opened in a browser
-function handler (request, response) {
-
-	request.addListener('end', function () {
-        fileServer.serve(request, response);
-    });
-}
+var express = require('express')
+  , routes = require('./routes')
+  , http = require('http');
+ 
+var app = express();
+var server = app.listen(3000);
+var io = require('socket.io').listen(server);
+ 
+app.configure(function(){
+  app.set('views', __dirname + '/views');
+  app.set('view engine', 'ejs');
+  app.use(express.favicon());
+  app.use(express.logger('dev'));
+  app.use(express.static(__dirname + '/assets'));
+  app.use(express.bodyParser());
+  app.use(express.methodOverride());
+  app.use(app.router);
+});
+ 
+app.configure('development', function(){
+  app.use(express.errorHandler());
+});
+ 
+app.get('/', routes.index);
+ 
+ 
+console.log("Express server listening on port 3000");
 
 // Delete this row if you want to see debug messages
 io.set('log level', 1);

@@ -7,7 +7,7 @@ $(function(){
 	}
 
 	// The URL of your web server (the port is set in app.js)
-	var url = 'http://localhost:8080';
+	var url = 'http://localhost:3000';
 
 	var doc = $(document),
 		win = $(window),
@@ -105,7 +105,7 @@ $(function(){
 				
 				cursors[ident].remove();
 				delete clients[ident];
-				delete cursors[ident];
+				delete cursors[ident];	
 			}
 		}
 		

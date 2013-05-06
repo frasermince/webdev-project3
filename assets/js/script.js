@@ -7,7 +7,7 @@ $(function(){
 	}
 
 	// The URL of your web server (the port is set in app.js)
-	var url = 'http://nodedrawing-7690.onmodulus.net';
+	var url = 'http://localhost';
 
 	var doc = $(document),
 		win = $(window),
@@ -57,12 +57,12 @@ $(function(){
 	
 	canvas.on('mousedown',function(e){
 		e.preventDefault();
-		drawing = true;
+		//drawing = true;
 		prev.x = e.pageX;
 		prev.y = e.pageY;
 		
 		// Hide the instructions
-		instructions.fadeOut();
+		//instructions.fadeOut();
 	});
 	
 	doc.bind('mouseup mouseleave',function(){

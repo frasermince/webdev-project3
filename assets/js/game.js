@@ -236,6 +236,7 @@ function onSocketConnected() {
 }
 
 function createLocal(data){
+	console.log("id: " + data.id);
 	if(data.id % 2 == 1)
 		localPlayer =  new Player(data.id, playerName, 500, 50);
 	else
@@ -301,11 +302,7 @@ function onMoveMissile(data){
 	currentMissile.setY(data.y);
 	console.log("X = " + currentMissile.getX());
 	console.log("Y = " + currentMissile.getY());
-	if(((localPlayer.getX() - currentMissile.getX() >= 0 && localPlayer.getX() - currentMissile.getX() <= 5) || (localPlayer.getX() - currentMissile.getX() <= 0 && localPlayer.getX() - currentMissile.getX() >= -5)) &&
-			((localPlayer.getY() - currentMissile.getY() >= 0 && localPlayer.getY() - currentMissile.getY() <= 5) || (localPlayer.getY() - currentMissile.getY() <= 0 && localPlayer.getY() - currentMissile.getY() >= -5))) {
-			console.log("End game missile");
-			gameEnded = true;
-		}
+	
 }
 
 function onRemovePlayer(data) {
@@ -361,20 +358,26 @@ function missileById(id) {
 function update() {
 	// Update local player and check for change
 	var check = true;
-	/*while(check){
-		for( var i = 0; i < myMissiles.length; i++){
-			check = false;
-			if(missiles[i].getY() >= 500 || missiles[i].getY() <= 0){
+	while(check){
+		check = false;
+		for( var i = 0; i < missiles.length; i++){
+			if(missiles[i].getY() >= 700 || missiles[i].getY() <= 0){
 				missiles.splice(i,1);
 				check = true;
 				break;
 			}
 		}
-	}*/
-	for( var i = 0; i < myMissiles.length; i++){
+	}
+	for( var i = 0; i < missiles.length; i++){
 		missiles[i].update();
+		currentMissile = missiles[i];
+		if(((localPlayer.getX() - currentMissile.getX() >= 0 && localPlayer.getX() - currentMissile.getX() <= 5) || (localPlayer.getX() - currentMissile.getX() <= 0 && localPlayer.getX() - currentMissile.getX() >= -5)) &&
+			((localPlayer.getY() - currentMissile.getY() >= 0 && localPlayer.getY() - currentMissile.getY() <= 5) || (localPlayer.getY() - currentMissile.getY() <= 0 && localPlayer.getY() - currentMissile.getY() >= -5))) {
+			console.log("End game missile");
+			gameEnded = true;
+		}
 		//console.log("x = " + myMissiles[i].getX());
-		console.log("y = " + myMissiles[i].getY());
+		//console.log("y = " + missiles[i].getY());
 		//socket.emit("move missile", {id: myMissiles[i].id, x: myMissiles[i].getX(), y: myMissiles[i].getY(), direction: myMissiles[i].getDirection()});
 	}
 	if (localPlayer != null && localPlayer.update(keys)) {

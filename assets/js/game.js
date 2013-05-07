@@ -78,6 +78,8 @@ var Player = function(iden, newName, startX, startY) {
 	var name = newName;
 	var moveAmount = 2;
 	var direction;
+	var xDir = 0;
+	var yDir = 0;
 	var time = 0;
 	if(id % 2 == 1) {
 		console.log("odd");
@@ -113,41 +115,71 @@ var Player = function(iden, newName, startX, startY) {
 	var setY = function(newY){
 		y = newY;
 	}
+
+	var setDir = function(newX, newY){
+		xDir = newX;
+		yDir = newY;
+	}
+	var getXDir = function(){
+		return xDir;
+	}
+	var getYDir = function(){
+		return yDir;
+	}
 	
 	// Update player position
 	var update = function(keys) {
+		if(keys != false){
 		// Previous position
-		var zero = 0;
-		var prevX = x,
-			prevY = y;
-			
-		if(keys.fire && keys != 0 && new Date().getTime() - time > 500){
-			time = new Date().getTime();
-			missId = parseInt(id.toString() + "0" + count.toString(),10);
-			count++;
-			//console.log("missId: " + missId);
-			tempMissile = new Missile(missId, x + 15, y + direction, direction)
-			missiles.push(tempMissile);
-			myMissiles.push(tempMissile);
-			//console.log("emit id: " + missId);
-			socket.emit("new missile", {id: missId, x: x + 15, y: y + direction, direction: direction});
+			var zero = 0;
+			var prevX = x,
+				prevY = y;
+				
+			if(keys.fire && keys != 0 && new Date().getTime() - time > 500){
+				time = new Date().getTime();
+				missId = parseInt(id.toString() + "0" + count.toString(),10);
+				count++;
+				//console.log("missId: " + missId);
+				tempMissile = new Missile(missId, x + 15, y + direction, direction)
+				missiles.push(tempMissile);
+				myMissiles.push(tempMissile);
+				//console.log("emit id: " + missId);
+				socket.emit("new missile", {id: missId, x: x + 15, y: y + direction, direction: direction});
 
+			}
+			var oldX = xDir;
+			var oldY = yDir;
+			// Up key takes priority over down
+			if (keys.up) {
+				yDir = -1;
+			} 
+			else if (keys.down) {
+				yDir = 1;
+			}
+			else{
+				yDir = 0;
+			}
+
+			// Left key takes priority over right
+			if (keys.left) {
+				xDir = -1;
+			} 
+			else if (keys.right) {
+				xDir = 1;
+			}
+			else{
+				xDir = 0;
+			}
+			if(oldX != xDir || oldY != yDir){
+				socket.emit("move player", {id: id, x: x, y: y, dx: xDir, dy: yDir});
+			}
 		}
-
-		// Up key takes priority over down
-		if (keys.up) {
-			y -= moveAmount;
-		} else if (keys.down) {
-			y += moveAmount;
-		};
-
-		// Left key takes priority over right
-		if (keys.left) {
-			x -= moveAmount;
-		} else if (keys.right) {
-			x += moveAmount;
-		};
-
+		else{
+			console.log("Xdir: " + xDir);
+			console.log("Ydir: " + yDir);
+		}
+		x += xDir * moveAmount;
+		y += yDir * moveAmount;
 		return (prevX != x || prevY != y) ? true : false;
 	};
 	
@@ -163,6 +195,9 @@ var Player = function(iden, newName, startX, startY) {
 		id: id,
 		setX: setX,
 		setY: setY,
+		getXDir: getXDir,
+		getYDir: getYDir,
+		setDir: setDir,
 		update: update,
 		//getImg: getImg,
 		draw: draw
@@ -173,6 +208,10 @@ var Player = function(iden, newName, startX, startY) {
 // 	socket.emit("disconnect",{id: localPlayer.id});
 // }
 
+
+function startGame(){
+	init();
+}
 
 function init() {
 	canvas = document.getElementById("gameCanvas");
@@ -190,7 +229,7 @@ function init() {
 	playerName = $("#loginName").val();
 	
 	
-	socket = io.connect('http://localhost:3000');
+	socket = io.connect('http://space-shooter-7699.onmodulus.net/');
 	missiles = [];
 	remotePlayers = [];
 	console.log(remotePlayers.length);
@@ -285,14 +324,17 @@ function onMovePlayer(data) {
 	};
 
 	// Update player position
+	//console.log("x: " + data.x + " y: " + data.y);
 	movePlayer.setX(data.x);
 	movePlayer.setY(data.y);
+	movePlayer.setDir(data.dx,data.dy);
+	//console.log("x: " + movePlayer.getXDir() + " y: " + movePlayer.getYDir());
 	if(((localPlayer.getX() - movePlayer.getX() >= 0 && localPlayer.getX() - movePlayer.getX() <= 15) || (localPlayer.getX() - movePlayer.getX() <= 0 && localPlayer.getX() - movePlayer.getX() >= -15)) &&
-			((localPlayer.getY() - movePlayer.getY() >= 0 && localPlayer.getY() - movePlayer.getY() <= 15) || (localPlayer.getY() - movePlayer.getY() <= 0 && localPlayer.getY() - movePlayer.getY() >= -15))) {
-			console.log("End game");
-			
-			gameEnded = true;
-		}
+		((localPlayer.getY() - movePlayer.getY() >= 0 && localPlayer.getY() - movePlayer.getY() <= 15) || (localPlayer.getY() - movePlayer.getY() <= 0 && localPlayer.getY() - movePlayer.getY() >= -15))) {
+		console.log("End game");
+		
+		gameEnded = true;
+	}
 };
 
 function onMoveMissile(data){
@@ -333,6 +375,7 @@ function animate() {
 		socket.disconnect();
 		ctx.font="50px Helvetica";
 		ctx.fillText("Game Over!",10,50);
+		displayLeaderboard();
 	}
 };
 
@@ -390,10 +433,17 @@ function update() {
 			gameEnded = true;
 		}
 	}
-	if (localPlayer != null && localPlayer.update(keys)) {
+	if(localPlayer != null){
+		localPlayer.update(keys);
+		for(var i = 0; i < remotePlayers.length; i++){
+			remotePlayers[i].update(false);
+		}
+	}
+
+	/*if (localPlayer != null && localPlayer.update(keys)) {
 		// Send local player data to the game server
 		socket.emit("move player", {id: localPlayer.id, x: localPlayer.getX(), y: localPlayer.getY()});
-	};
+	};*/
 };
 
 function draw() {

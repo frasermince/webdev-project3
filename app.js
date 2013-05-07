@@ -52,6 +52,8 @@ var Missile = function(iden, startX, startY, direction){
 var Player = function(iden, n, startX, startY) {
 	var x = startX;
 	var y = startY;
+	var xDir = 0;
+	var yDir = 0;
 	//var id;
 	var name = n;
 	var id = iden;
@@ -78,11 +80,25 @@ var Player = function(iden, n, startX, startY) {
 		y = newY;
 	}
 
+	var setDir = function(newX, newY){
+		xDir = newX;
+		yDir = newY;
+	}
+	var getXDir = function(){
+		return xDir;
+	}
+	var getYDir = function(){
+		return yDir;
+	}
+
 	return {
 		getX: getX,
+		setDir: setDir,
 		getY: getY,
 		setX: setX,
 		setY: setY,
+		getXDir: getXDir,
+		getYDir: getYDir,
 		id: id,
 		name: name,
 		//getImg: getImg
@@ -102,7 +118,7 @@ var express = require('express')
   , http = require('http');
  
 var app = express();
-var server = app.listen(3000);
+var server = app.listen(process.env.PORT || 3000);
 var io = require('socket.io').listen(server);
  
 app.configure(function(){
@@ -209,10 +225,11 @@ function onMovePlayer(data) {
 	};
 
 	// Update player position
+	movePlayer.setDir(data.dx,data.dy);
 	movePlayer.setX(data.x);
-	movePlayer.setY(data.y);
+	movePlayer.setY(data.y)
 	// Broadcast updated position to connected socket clients
-	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY(), name: movePlayer.name});
+	this.broadcast.emit("move player", {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY(), dx: movePlayer.getXDir(), dy: movePlayer.getYDir()});
 };
 
 

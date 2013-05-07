@@ -102,7 +102,7 @@ var express = require('express')
   , http = require('http');
  
 var app = express();
-var server = app.listen(process.env.PORT || 3000);
+var server = app.listen(3000);
 var io = require('socket.io').listen(server);
  
 app.configure(function(){
@@ -130,18 +130,32 @@ console.log("Express server listening on port 3000");
 io.set('log level', 1);
 
 // Listen for incoming connections from clients
-io.sockets.on('connection', onSocketConnection);
-
-function onSocketConnection(client) {
+io.sockets.on('connection', function (client) {
 	//When a new socket is connected by a client
-	util.log("New Client Info: "+ client.id);
+	//util.log("New Client Info: "+ client.id);
 
 	//Client disconnected
-	client.on("disconnect", onClientDisconnect);
+	client.on("disconnect", function () {
+		util.log("Player has disconnected: "+ this.iden);
+
+		var removePlayer = playerById(this.iden);
+
+		if (!removePlayer) {
+			util.log("Remove: Player not found: "+ this.iden);
+			return;
+		}
+
+		players.splice(players.indexOf(removePlayer), 1);
+
+		this.broadcast.emit("remove player", {id: this.iden});
+	});
 	
 	//client.on("get", getData);
-	
-	client.on("get", onGetData);
+	client.on("get", function(data){
+		this.iden = identification;
+		this.emit("create", {id: identification});
+		identification++;
+	});
 
 	//New player message
 	client.on("new player", onNewPlayer);
@@ -155,27 +169,15 @@ function onSocketConnection(client) {
 	//Move missiles to new location
 	client.on("move missile", onMoveMissile);
 	
-}
+});
 
 function onGetData(data){
+	this.iden = identification;
 	this.emit("create", {id: identification});
 	identification++;
 }
 
-function onClientDisconnect() {
-	util.log("Player has disconnected: "+this.id);
 
-	var removePlayer = playerById(this.id);
-
-	if (!removePlayer) {
-		util.log("Remove: Player not found: "+this.id);
-		return;
-	}
-
-	players.splice(players.indexOf(removePlayer), 1);
-
-	this.broadcast.emit("remove player", {id: this.id});
-}
 
 function onNewPlayer(data) {
 	var newPlayer = new Player(data.id, data.name,data.x, data.y);
@@ -189,13 +191,7 @@ function onNewPlayer(data) {
 	for (i = 0; i < players.length; i++) {
 		existingPlayer = players[i];
 		this.emit("new player", {id: existingPlayer.id, name: existingPlayer.name, x: existingPlayer.getX(), y: existingPlayer.getY()});
-	}
-	var j, existingMissile;
-	for(j = 0; j < missiles.length; j++){
-		existingMissile = missiles[j];
-		this.emit("new missile", {id: existingMissile.id, x: existingMissile.getX(), y: existingMissile.getY(), direction: existingMissile.getDirection()})
-	}
-		
+	} 	
 	// Add new player to the players array
 
 	players.push(newPlayer);

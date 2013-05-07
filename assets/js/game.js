@@ -169,6 +169,10 @@ var Player = function(iden, newName, startX, startY) {
 	}
 }
 
+// window.onunload = function(){
+// 	socket.emit("disconnect",{id: localPlayer.id});
+// }
+
 
 function init() {
 	canvas = document.getElementById("gameCanvas");
@@ -186,7 +190,7 @@ function init() {
 	playerName = $("#loginName").val();
 	
 	
-	socket = io.connect('http://space-shooter-7699.onmodulus.net');
+	socket = io.connect('http://localhost:3000');
 	missiles = [];
 	remotePlayers = [];
 	console.log(remotePlayers.length);
@@ -211,7 +215,7 @@ function init() {
 	socket.on("move player", onMovePlayer);
 	socket.on("remove player", onRemovePlayer);
 	//socket.on("pass", onPass);
-	
+
 	console.log(remotePlayers.length);
 	
 }
@@ -324,7 +328,9 @@ function animate() {
 
 		// Request a new animation frame using Paul Irish's shim
 		window.requestAnimFrame(animate);
-	} else {
+	} 
+	else {
+		socket.disconnect();
 		ctx.font="50px Helvetica";
 		ctx.fillText("Game Over!",10,50);
 	}
@@ -379,7 +385,7 @@ function update() {
 	for(var i = 0; i < otherMissiles.length; i++){
 		currentMissile = otherMissiles[i];
 		if((localPlayer.getX() - currentMissile.getX() >= -20 && localPlayer.getX() - currentMissile.getX() <= 20) &&
-			(localPlayer.getY() - currentMissile.getY() >= -20 && localPlayer.getY() - currentMissile.getY() <= 20)) {
+			(localPlayer.getY() - currentMissile.getY() >= -25 && localPlayer.getY() - currentMissile.getY() <= 25)) {
 			console.log("End game missile");
 			gameEnded = true;
 		}

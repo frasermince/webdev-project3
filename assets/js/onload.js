@@ -1,9 +1,6 @@
 $("#startButton").click(function() {
 	console.log($("#loginName").val());
-	$('#login').addClass('animated bounceOutUp');
-	init();
-	animate();
-	$('#gameCanvas').removeClass("noDisplay");
+	startGame();
 });
 
 $("#loginName").focus();
@@ -13,3 +10,10 @@ $("#buildStatus").mouseenter(function() {
 }).mouseleave(function() {
 	$(this).removeClass('animated pulse');
 });
+
+function startGame() {
+	$('#login').addClass('animated bounceOutUp');
+	init();
+	animate();
+	$('#gameCanvas').removeClass("noDisplay");
+}

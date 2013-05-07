@@ -14,14 +14,23 @@
       <h2><input type="text" id="loginName" placeholder="Name" required="true"> <button id="startButton">Start!</button></h2>
       <fb:login-button show-faces="false" width="300" max-rows="1"></fb:login-button>
     </hgroup>
+    <hgroup id="leaderboard"  class="noDisplay">    
+      <h1>Leaderboard</h1>
+      <h2></h2>
+    </hgroup>
 		<canvas id="gameCanvas" class="noDisplay"></canvas>
 		<footer>
-      <h2><i>Tutorial:</i> Node.js Multiplayer Drawing Game</h2>
-      <span class="actions"><a onClick="inviteFriends();"><img src="img/invite.png"></a></span>
+      <h2><a onClick="hiddenAchievement();">Developed in Abilene, Texas</a></h2>
+      <span class="actions">
+        <a onClick="inviteFriends();"><img src="img/invite.png"></a>
+        <a onClick="postToFeed();"><img src="img/post.png"></a>
+        <a onClick="challengeFriend();"><img src="img/challenge.png"></a>
+      </span>
     </footer>
 		<img id="pokeball" class="noDisplay" src="img/ship0.png">
 		<img id="pikachu" class="noDisplay" src="img/ship8.png">
 		<img id="miss" class="noDisplay" src="img/missile.png">
+    <div class="leaderboard"></div>
 	</body>
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="js/requestAnimationFrame.js"></script>
@@ -29,6 +38,7 @@
 	<script src="js/game.js"></script>
 	<script src="js/onload.js"></script>
   <script>
+  var userId;
       window.fbAsyncInit = function() {
         FB.init({
           appId      : '193259027491899', // App ID
@@ -80,10 +90,35 @@
         FB.api('/me', function(response) {
           console.log(response);
           console.log('Good to see you, ' + response.name + '.');
+
+          if(response.first_name == "Clement") {
+            clementAchievement();
+            addScore(100);
+          } else if(response.first_name == "Fraser") {
+            fraserAchievement();
+          }
+
           userId = response.userId;
           console.log(token);
           startGame();
+          addFirstGameAchievement();
         });
+
+        //Perform time sensitive achievements
+        var d = new Date();
+        var hrs = d.getHours();
+        var date = d.getDate();
+        var month = d.getMonth();
+
+        if(hrs >= 22 && hrs <=24) {
+          nightAchievement();
+        } else if(hrs >= 0 && hrs <= 5) {
+          morningAchievement();
+        }
+
+        if(month == 5 && date>=6 && date<=10) {
+          finalsAchievement();
+        }
       }
 
       function inviteFriends() {
@@ -92,9 +127,171 @@
         }, requestCallback);
 
         function requestCallback(response) {
-          // Handle callback here
+          invitedAchievement();
         }
       }
+
+      function challengeFriend() {
+         FB.ui({method: 'apprequests',
+          message: 'Challenge Friend!'
+        }, requestCallback);
+
+        function requestCallback(response) {
+        }
+      }
+
+      function postToFeed() {
+
+        // calling the API ...
+        var obj = {
+          method: 'feed',
+          link: 'https://apps.facebook.com/acuspaceshooter/',
+          picture: 'score.png',
+          name: 'Space Shooter',
+          caption: 'Check out my score!',
+          description: 'I got a score of 5000'
+        };
+
+        function callback(response) {
+          postedAchievement();
+        }
+
+        FB.ui(obj, callback);
+      }
+
+      function addAchievement(params) {
+        console.log("Adding Achievement to API with Params: ", params);
+        FB.api("/193259027491899/achievements", 'POST', params , function(response) {
+          if (!response || response.error) {
+            console.log('Error occured');
+            console.log('response: ', response.error);
+          } else {
+            console.log('response: ', response);
+          }
+        });
+        
+        FB.api("/"+FB.getUserID()+"/achievements", 'post', {achievement: params.achievement}, function(response) {
+          if (!response || response.error) {
+            console.log('Error occured');
+            console.log('response: ', response.error);
+          } else {
+            console.log('response: ', response);
+          }
+        });
+      }
+
+
+      var appToken = "193259027491899|1tfJ2q0bgK0q9DLCeTQJptOVD8w";
+      function addFirstGameAchievement() {
+        console.log("addFirstGameAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/firstgameachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function lostAGameAchievement() {
+        console.log("lostAGameAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/lostagameachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function postedAchievement() {
+        console.log("postedAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/postedachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function invitedAchievement() {
+        console.log("invitedAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/invitedachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function finalsAchievement() {
+        console.log("finalsAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/finalsachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function clementAchievement() {
+        console.log("clementAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/clementachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function fraserAchievement() {
+        console.log("fraserAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/fraserachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function hiddenAchievement() {
+        console.log("hiddenAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/hiddenachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function nightAchievement() {
+        console.log("nightAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/nightachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function morningAchievement() {
+        console.log("morningAchievement");
+        var achievementURL = "http://space-shooter-7699.onmodulus.net/morningachievement.html";
+
+        var params = { achievement: achievementURL, access_token: appToken};
+        addAchievement(params);
+      }
+
+      function displayLeaderboard() {
+        FB.api("/193259027491899/scores", 'get', function(response) {
+          if (!response || response.error) {
+            console.log('Error occured');
+            console.log('response: ', response.error);
+          } else {
+            //console.log('response: ', response);
+
+            var htmlcontents = "";
+            for(var i=0; i<response.data.length; i++) {
+              htmlcontents += "<div>" + response.data[i].user.name + " " + response.data[i].score + "</div>";
+            }
+            $("#leaderboard h2").html(htmlcontents);
+            $('#leaderboard').removeClass("noDisplay");
+          }
+        });
+      }
+
+      function addScore(newScore) {
+          FB.api('/me/scores', 'post', {score: newScore}, function(response) {
+          console.log("ADDING SCORE WOOHOO");
+          if (!response || response.error) {
+          console.log(response);
+          console.log('Error occured');
+          } else {
+          console.log('Post ID: ' + response.id);
+          }
+        });
+      }
+
 
       // Load the SDK asynchronously
       (function(d){

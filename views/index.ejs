@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="css/animate.min.css">
+		<link rel="stylesheet" href="css/style.css">
+		<script src="js/jquery.1.9.1.js"></script>
+	</head>
+	
+	<body>
+		<div id="login">
+			<h1>Welcome!</h1>
+			<input type="text" id="loginName" class="floatLeft" placeholder="Please enter your name." required="true">
+			<button id="startButton" class="floatRight">Start</button>
+		</div>
+		<canvas id="gameCanvas" class="noDisplay"></canvas>
+		<footer>
+			Developed in Abilene, Texas.
+			<a href="https://webops.nodejitsu.com/#bfm09a/webdev-project3"><img id="buildStatus" src="https://webhooks.nodejitsu.com/bfm09a/webdev-project3.png"></a>
+		</footer>
+		<img id="pokeball" class="noDisplay" src="img/ship0.png">
+		<img id="pikachu" class="noDisplay" src="img/ship8.png">
+		<img id="miss" class="noDisplay" src="img/missile.png">
+	</body>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="js/requestAnimationFrame.js"></script>
+	<script src="js/keys.js"></script>
+	<script src="js/game.js"></script>
+	<script src="js/onload.js"></script>
+</html>

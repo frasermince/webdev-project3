@@ -370,15 +370,19 @@ function update() {
 	}
 	for( var i = 0; i < missiles.length; i++){
 		missiles[i].update();
-		currentMissile = missiles[i];
-		if(((localPlayer.getX() - currentMissile.getX() >= 0 && localPlayer.getX() - currentMissile.getX() <= 5) || (localPlayer.getX() - currentMissile.getX() <= 0 && localPlayer.getX() - currentMissile.getX() >= -5)) &&
-			((localPlayer.getY() - currentMissile.getY() >= 0 && localPlayer.getY() - currentMissile.getY() <= 5) || (localPlayer.getY() - currentMissile.getY() <= 0 && localPlayer.getY() - currentMissile.getY() >= -5))) {
-			console.log("End game missile");
-			gameEnded = true;
-		}
+		//currentMissile = missiles[i];
+		//console.log("collision = " + (localPlayer.getX() - currentMissile.getX()) + ", " + (localPlayer.getY() - currentMissile.getY()));
 		//console.log("x = " + myMissiles[i].getX());
 		//console.log("y = " + missiles[i].getY());
 		//socket.emit("move missile", {id: myMissiles[i].id, x: myMissiles[i].getX(), y: myMissiles[i].getY(), direction: myMissiles[i].getDirection()});
+	}
+	for(var i = 0; i < otherMissiles.length; i++){
+		currentMissile = otherMissiles[i];
+		if((localPlayer.getX() - currentMissile.getX() >= -20 && localPlayer.getX() - currentMissile.getX() <= 20) &&
+			(localPlayer.getY() - currentMissile.getY() >= -20 && localPlayer.getY() - currentMissile.getY() <= 20)) {
+			console.log("End game missile");
+			gameEnded = true;
+		}
 	}
 	if (localPlayer != null && localPlayer.update(keys)) {
 		// Send local player data to the game server

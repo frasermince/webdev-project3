@@ -13,6 +13,7 @@
     </head>
     
     <body>
+    <div id="fb-root"></div>
     <div id="cursors">
         <!-- The mouse pointers will be created here -->
     </div>
@@ -23,20 +24,95 @@
     
     <hgroup id="instructions">    
       <h1>Draw anywhere!</h1>
-      <h2><input id="loginName" type="text" placeholder="Name"> <button id="startButton">Start!</button></h2>
-      
-
+      <h2><input id="loginName" type="text" placeholder="Name"> <button id="startButton" onClick="javascript:startGame();">Start!</button></h2>
+      <fb:login-button show-faces="false" width="300" max-rows="1"></fb:login-button>
     </hgroup>
     
-        <footer>
-          <h2><i>Tutorial:</i> Node.js Multiplayer Drawing Game</h2>
-            <a class="tzine" href="http://tutorialzine.com/2012/08/nodejs-drawing-game/">Head on to <i>Tutorial<b>zine</b></i> to read and download</a>
-        </footer>
+    <footer>
+      <h2><i>Tutorial:</i> Node.js Multiplayer Drawing Game</h2>
+      <span class="actions"><a onClick="inviteFriends();"><img src="img/invite.png"></a></span>
+    </footer>
         
         <!-- JavaScript includes. Notice that socket.io.js is served by node.js -->
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/jquery-1.8.0.min.js"></script>
     <script src="js/script.js"></script>
-        
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : '242579425882382', // App ID
+            status     : true, // check login status
+            cookie     : true, // enable cookies to allow the server to access the session
+            xfbml      : true,  // parse XFBML
+            frictionlessRequests: true
+        });
+
+        FB.Event.subscribe('auth.authResponseChange', function(response) {
+            // Here we specify what we do with the response anytime this event occurs. 
+            if (response.status === 'connected') {
+              // The response object is returned with a status field that lets the app know the current
+              // login status of the person. In this case, we're handling the situation where they 
+              // have logged in to the app.
+              token = response.authResponse.accessToken;
+              loggedIn();
+            } else if (response.status === 'not_authorized') {
+              // In this case, the person is logged into Facebook, but not into the app, so we call
+              // FB.login() to prompt them to do so. 
+              // In real-life usage, you wouldn't want to immediately prompt someone to login 
+              // like this, for two reasons:
+              // (1) JavaScript created popup windows are blocked by most browsers unless they 
+              // result from direct user interaction (such as a mouse click)
+              // (2) it is a bad experience to be continually prompted to login upon page load.
+              performFacebookLogin();
+            } else {
+              // In this case, the person is not logged into Facebook, so we call the login() 
+              // function to prompt them to do so. Note that at this stage there is no indication
+              // of whether they are logged into the app. If they aren't then they'll see the Login
+              // dialog right after they log in to Facebook. 
+              // The same caveats as above apply to the FB.login() call here.
+              performFacebookLogin();
+            }
+        });
+      }
+
+      function performFacebookLogin() {
+        FB.login(function(response) {
+          // handle the response
+          }, {scope: 'publish_actions'}
+        );
+      }
+
+      // Here we run a very simple test of the Graph API after login is successful. 
+      // This testAPI() function is only called in those cases. 
+      function loggedIn() {
+        console.log('Welcome!  Fetching your information.... ');
+        FB.api('/me', function(response) {
+          console.log(response);
+          console.log('Good to see you, ' + response.name + '.');
+          userId = response.userId;
+          console.log(token);
+          startGame();
+        });
+      }
+
+      function inviteFriends() {
+        FB.ui({method: 'apprequests',
+          message: 'Join this awesome game!'
+        }, requestCallback);
+
+        function requestCallback(response) {
+          // Handle callback here
+        }
+      }
+
+      // Load the SDK asynchronously
+      (function(d){
+       var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+       if (d.getElementById(id)) {return;}
+       js = d.createElement('script'); js.id = id; js.async = true;
+       js.src = "//connect.facebook.net/en_US/all.js";
+       ref.parentNode.insertBefore(js, ref);
+      }(document));
+    </script>
     </body>
 </html>

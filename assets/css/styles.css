@@ -176,11 +176,11 @@ footer h2 i{
 	color:#888;
 }
 
-footer a.tzine,a.tzine:visited{
+footer .actions{
 	color: #999999;
 	font-size: 12px;
 	left: 50%;
-	margin: 16px 0 0 110px;
+	margin: 7px 0 0 110px;
 	position: absolute;
 	text-decoration: none;
 	top: 0;

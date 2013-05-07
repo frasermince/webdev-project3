@@ -80,8 +80,8 @@ var Player = function(iden, newName, startX, startY) {
 	var direction;
 	var xDir = 0;
 	var yDir = 0;
-	var time = new Date().getTime();
-	var startTime;
+	var time = new Date().getTime(); 
+	var startTime = new Date().getTime();
 	if(id % 2 == 1) {
 		console.log("odd");
 		img = document.getElementById("pikachu");
@@ -179,8 +179,8 @@ var Player = function(iden, newName, startX, startY) {
 			}
 		}
 		else{
-			console.log("Xdir: " + xDir);
-			console.log("Ydir: " + yDir);
+			//console.log("Xdir: " + xDir);
+			//console.log("Ydir: " + yDir);
 		}
 		x += xDir * moveAmount;
 		y += yDir * moveAmount;
@@ -380,7 +380,9 @@ function animate() {
 		window.requestAnimFrame(animate);
 	} 
 	else {
-		addScore((new Date().getTime() - localPlayer.getStartTime()) / 1000)
+		var duration = (new Date().getTime() - localPlayer.getStartTime()) / 1000;
+		console.log(duration);
+		addScore(duration);
 		socket.disconnect();
 		ctx.font="50px Helvetica";
 		ctx.fillText("Game Over!",10,50);

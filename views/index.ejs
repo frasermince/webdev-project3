@@ -143,13 +143,15 @@
       function postToFeed() {
 
         // calling the API ...
+
+        var descriptionStr = "I got a score of " + getUserScore();
         var obj = {
           method: 'feed',
           link: 'https://apps.facebook.com/acuspaceshooter/',
           picture: 'score.png',
           name: 'Space Shooter',
           caption: 'Check out my score!',
-          description: 'I got a score of 5000'
+          description: descriptionStr
         };
 
         function callback(response) {
@@ -278,6 +280,24 @@
             $('#leaderboard').removeClass("noDisplay");
           }
         });
+      }
+
+      function getUserScore() {
+        FB.api("/193259027491899/scores", 'get', function(response) {
+          if (!response || response.error) {
+            console.log('Error occured');
+            console.log('response: ', response.error);
+          } else {
+
+            for(var i=0; i<response.data.length; i++) {
+              if(response.data[i].user.id == userId) {
+                return response.data[i].score;
+              }
+            }
+          }
+        });
+
+        return 0;
       }
 
       function addScore(newScore) {

@@ -80,7 +80,8 @@ var Player = function(iden, newName, startX, startY) {
 	var direction;
 	var xDir = 0;
 	var yDir = 0;
-	var time = 0;
+	var time = new Date().getTime();
+	var startTime;
 	if(id % 2 == 1) {
 		console.log("odd");
 		img = document.getElementById("pikachu");
@@ -125,6 +126,9 @@ var Player = function(iden, newName, startX, startY) {
 	}
 	var getYDir = function(){
 		return yDir;
+	}
+	var getStartTime = function(){
+		return startTime;
 	}
 	
 	// Update player position
@@ -199,6 +203,7 @@ var Player = function(iden, newName, startX, startY) {
 		getYDir: getYDir,
 		setDir: setDir,
 		update: update,
+		getStartTime: getStartTime,
 		//getImg: getImg,
 		draw: draw
 	}
@@ -209,8 +214,11 @@ var Player = function(iden, newName, startX, startY) {
 // }
 
 
-function startGame(){
+/*function startGame(){
 	init();
+}*/
+window.onload = function(){
+	startGame();
 }
 
 function init() {
@@ -372,6 +380,7 @@ function animate() {
 		window.requestAnimFrame(animate);
 	} 
 	else {
+		addScore((new Date().getTime() - localPlayer.getStartTime()) / 1000)
 		socket.disconnect();
 		ctx.font="50px Helvetica";
 		ctx.fillText("Game Over!",10,50);

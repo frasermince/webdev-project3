@@ -9,9 +9,9 @@
 	<body>
 
     <div id="fb-root"></div>
-		<hgroup id="instructions">    
+		<hgroup id="login">    
       <h1>Space Shooters</h1>
-      <h2><input id="loginName" type="text" placeholder="Name"> <button id="startButton">Start!</button></h2>
+      <h2><input type="text" id="loginName" placeholder="Name" required="true"> <button id="startButton">Start!</button></h2>
       <fb:login-button show-faces="false" width="300" max-rows="1"></fb:login-button>
     </hgroup>
 		<canvas id="gameCanvas" class="noDisplay"></canvas>
